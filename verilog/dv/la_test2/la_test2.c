@@ -29,6 +29,48 @@
 int clk = 0;
 int i;
 
+uint32_t mat_A[9] = {
+  //1.126105
+  0x00003c81,
+  //0.407351
+  0x00003685,
+  //2.315680
+  0x000040a2,
+  //0.930338
+  0x00003b71,
+  //2.542255
+  0x00004116,
+  //1.070112
+  0x00003c48,
+  //1.107074
+  0x00003c6e,
+  //1.020977
+  0x00003c15,
+  //2.659628
+  0x00004152
+};
+
+uint32_t mat_B[9] = {
+  //1.435914
+  0x00003dbe,
+  //1.319322
+  0x00003d47,
+  //0.348074
+  0x00003592,
+  //1.898164
+  0x00003f98,
+  //1.588423
+  0x00003e5b,
+  //0.815995
+  0x00003a87,
+  //2.724823
+  0x00004173,
+  //0.130791
+  0x0000302f,
+  //2.339815
+  0x000040ae
+};
+
 void main()
 {
         /* Set up the housekeeping SPI to be connected internally so	*/
@@ -79,6 +121,7 @@ void main()
         reg_mprj_io_1  = GPIO_MODE_USER_STD_OUTPUT;
         reg_mprj_io_0  = GPIO_MODE_USER_STD_OUTPUT;
 
+
         /* Apply configuration */
         reg_mprj_xfer = 1;
         while (reg_mprj_xfer == 1);
@@ -92,29 +135,38 @@ void main()
 	// Flag start of the test
 	reg_mprj_datal = 0xAB600000;
 
-	// Configure LA[64] LA[65] as outputs from the cpu
+	// Configure LA[64] LA[65] LA[66] as outputs from the cpu
 	reg_la2_oenb = reg_la2_iena = 0x00000003; 
+	// clk, reset, cs
+	//reg_la2_oenb = reg_la2_iena = 0x00000007; 
 
 	// Set clk & reset to one
 	reg_la2_data = 0x00000003;
+
+	// Configure LA[63:32] output from the cpu
+	reg_la1_oenb = reg_la1_iena = 0xFFFFFFFF;
+	//reg_la1_data = 0x00000000;
+	
+	// MSB 16 bits - 1.126105
+	// LSB 16 bits - 0.407351
+	reg_la1_data = 0x3c813685;
 
         // DELAY
         for (i=0; i<5; i=i+1) {}
 
 	// Toggle clk & de-assert reset
-	for (i=0; i<11; i=i+1) {
-		clk = !clk;
-		reg_la2_data = 0x00000000 | clk;
+	for (i=0; i<5; i=i+1) {
+	    clk = !clk;
+	    reg_la2_data = 0x00000000 | clk;
 	}
 
-        // reg_mprj_datal = 0xAB610000;
-
         while (1){
-                if (reg_la0_data_in >= 0x05) {
+		// 1.126105 * 0.407351 >= 0.45
+                if ((reg_la0_data_in & 0x0000FFFF) >= 0x00003733) {
                         reg_mprj_datal = 0xAB610000;
                         break;
                 }
-                
         }
 
 }
+
