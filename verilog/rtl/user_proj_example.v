@@ -1704,7 +1704,7 @@ module user_proj_example #(
     assign irq = 3'b000;	// Unused
 
     // LA
-    assign la_data_out = {{(127-BITS){1'b0}}, count};
+    //assign la_data_out = {{(127-BITS){1'b0}}, count};
     // Assuming LA probes [63:32] are for controlling the count register  
     assign la_write = ~la_oenb[63:32] & ~{BITS{valid}};
     // Assuming LA probes [65:64] are for controlling the count clk & reset  
@@ -1714,6 +1714,11 @@ module user_proj_example #(
     wire cs;
     // Assuming LA probes [66] are for controlling cs (data ready)
     assign cs = (~la_oenb[66]) ? la_data_in[66] : 0;
+
+    wire [31:0] bank2;
+    wire done_o_net;
+    assign bank2 = {{(24){1'b0}}, done_o_net, {(7){1'b0}}};
+    assign la_data_out = {{(BITS){1'b0}}, bank2, {(BITS){1'b0}}, count};
 
     /*
     counter #(
@@ -1735,9 +1740,11 @@ module user_proj_example #(
     interface_top interface_inst(
       .clk(clk),
       .rst(rst),
-      .cs(1'b1),
+      .cs(cs),
+      .readout_addr(la_data_in[70:67]),
       .data_in(la_data_in[63:32]),
-      .data_out(count)
+      .data_out(count),
+      .done_o(done_o_net)
     );
 
 endmodule
@@ -1797,14 +1804,16 @@ module interface_top (
   input  wire        clk,
   input  wire        rst,
   input  wire        cs,  // data ready
+  input  wire [ 3:0] readout_addr,
   input  wire [31:0] data_in,
-  output reg  [31:0] data_out
+  output reg  [31:0] data_out,
+  output wire        done_o
 );
 
   localparam W = 16;
   localparam N = 3;
 
-  wire done_o;
+  //wire done_o;
   //assign data_out = 1;
 
   // scratch pad
@@ -1851,10 +1860,6 @@ module interface_top (
   reg [4:0]      addr_cnter;
   reg [4:0] next_addr_cnter;
 
-  //assign data_out = A_mat[W * 3 +: W];
-  //assign data_out = done_o;
-  //assign data_out[2:0] = state[2:0];
-
   // TODO: might be redundant
   reg mat_en;
 
@@ -1869,7 +1874,6 @@ module interface_top (
     else begin
       state      <= next_state;
       addr_cnter <= next_addr_cnter;
-      data_out   <= {31'b0, done_o};
     end
   end
 
@@ -1895,6 +1899,39 @@ module interface_top (
       end
       PROCESS: begin
 	next_state = done_o ? IDLE : PROCESS;
+      end
+    endcase
+  end
+
+  // Readout addr
+  always @(*) begin
+    case (readout_addr)
+      4'b0000: begin
+        data_out[W - 1 : 0] = C_mat[4'b0000 * W +: W];
+      end
+      4'b0001: begin
+        data_out[W - 1 : 0] = C_mat[4'b0001 * W +: W];
+      end
+      4'b0010: begin
+        data_out[W - 1 : 0] = C_mat[4'b0010 * W +: W];
+      end
+      4'b0011: begin
+        data_out[W - 1 : 0] = C_mat[4'b0011 * W +: W];
+      end
+      4'b0100: begin
+        data_out[W - 1 : 0] = C_mat[4'b0100 * W +: W];
+      end
+      4'b0101: begin
+        data_out[W - 1 : 0] = C_mat[4'b0101 * W +: W];
+      end
+      4'b0110: begin
+        data_out[W - 1 : 0] = C_mat[4'b0110 * W +: W];
+      end
+      4'b0111: begin
+        data_out[W - 1 : 0] = C_mat[4'b0111 * W +: W];
+      end
+      4'b1000: begin
+        data_out[W - 1 : 0] = C_mat[4'b1000 * W +: W];
       end
     endcase
   end

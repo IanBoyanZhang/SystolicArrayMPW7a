@@ -29,6 +29,7 @@
 int clk = 0;
 int i;
 
+/*
 uint32_t mat_A[9] = {
   //1.126105
   0x00003c81,
@@ -70,6 +71,34 @@ uint32_t mat_B[9] = {
   //2.339815
   0x000040ae
 };
+*/
+
+uint32_t mat_A[9] = {
+  // 1
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+};
+
+uint32_t mat_B[9] = {
+  // 1
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+};
+
 
 void main()
 {
@@ -136,7 +165,10 @@ void main()
 	reg_mprj_datal = 0xAB600000;
 
 	// Configure LA[64] LA[65] LA[66] as outputs from the cpu
-	reg_la2_oenb = reg_la2_iena = 0x00000007;
+	// Configure LA[67] LA[68] LA[69] LA[70] as outputs from the CPU as readout address select
+	// Configure LA[71] as input to the CPU for o_done signal
+	reg_la2_oenb = reg_la2_iena = 0x00000007F;
+
 	// clk, reset, cs
 	//reg_la2_oenb = reg_la2_iena = 0x00000007; 
 
@@ -193,8 +225,10 @@ void main()
         while (1){
 		clk = !clk;
 		reg_la2_data = 0x00000000 | clk;
+	    	reg_la2_data = reg_la2_data | 0x00000004;
 
-                if ((reg_la0_data_in & 0x0000FFFF) >= 0x00000015) {
+                if ((reg_la0_data_in & 0x0000FFFF) >= 0x00004200 &&
+		    (reg_la2_data_in & 0x0000FFFF) == 0x00000080) {
                         reg_mprj_datal = 0xAB610000;
                         break;
                 }
