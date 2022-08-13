@@ -29,6 +29,7 @@
 int clk = 0;
 int i;
 
+/*
 uint32_t mat_A[9] = {
   //1.126105
   0x00003c81,
@@ -70,6 +71,34 @@ uint32_t mat_B[9] = {
   //2.339815
   0x000040ae
 };
+*/
+
+uint32_t mat_A[9] = {
+  // 1
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+};
+
+uint32_t mat_B[9] = {
+  // 1
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+  0x00003c00,
+};
+
 
 void main()
 {
@@ -136,12 +165,21 @@ void main()
 	reg_mprj_datal = 0xAB600000;
 
 	// Configure LA[64] LA[65] LA[66] as outputs from the cpu
-	reg_la2_oenb = reg_la2_iena = 0x00000007;
+	// Configure LA[67] LA[68] LA[69] LA[70] as outputs from the CPU as readout address select
+	// Configure LA[71] as input to the CPU for o_done signal
+	// Configure LA[72] LA[73] LA[74] LA[75] LA[76] as outputs from the CPU as input matrix address select
+	// Configure LA[77] as output from the CPU as 'control module sync' or write enable. (sync/wr)
+	// Configure LA[78] as input to the CPU as mem_set_done_oc
+	reg_la2_oenb = reg_la2_iena = 0x000003F7F;
+
 	// clk, reset, cs
 	//reg_la2_oenb = reg_la2_iena = 0x00000007; 
 
 	// Set clk & reset to one
 	reg_la2_data = 0x00000003;
+
+	// Set sync & wr to one
+	reg_la2_data = reg_la2_data | 0x00001000;
 
 	// Configure LA[63:32] output from the cpu
 	reg_la1_oenb = reg_la1_iena = 0xFFFFFFFF;
@@ -160,15 +198,18 @@ void main()
 	reg_la2_data = reg_la2_data | 0x00000004;
 
 	uint32_t i_mat = 0;
+	uint32_t mat_addr = 0x00000000; 
 
 	// Toggle clk & send mat_A data
 	for (i=0; i<17; i=i+1) {
 	    clk = !clk;
 	    reg_la2_data = 0x00000000 | clk;
 	    reg_la2_data = reg_la2_data | 0x00000004;
+	    reg_la2_data = reg_la2_data | mat_addr;
 	    if (clk == 0) {
 	        reg_la1_data = mat_A[i_mat];
 		i_mat += 1;
+		mat_addr += 1;
 	    } 
 	}
 
@@ -178,9 +219,11 @@ void main()
 	    clk = !clk;
 	    reg_la2_data = 0x00000000 | clk;
 	    reg_la2_data = reg_la2_data | 0x00000004;
+	    reg_la2_data = reg_la2_data | mat_addr;
 	    if (clk == 0) {
 	        reg_la1_data = mat_B[i_mat];
 		i_mat += 1;
+		mat_addr += 1;
 	    } 
 	}
 
@@ -193,8 +236,12 @@ void main()
         while (1){
 		clk = !clk;
 		reg_la2_data = 0x00000000 | clk;
+	    	reg_la2_data = reg_la2_data | 0x00000004;
 
-                if ((reg_la0_data_in & 0x0000FFFF) >= 0x00000015) {
+                if ((reg_la0_data_in & 0x0000FFFF) >= 0x00004200 &&
+		    (reg_la2_data_in & 0x0000FFFF) == 0x00000080) {
+			// de-assert cs
+			reg_la2_data = reg_la2_data & ~(0x00001000);
                         reg_mprj_datal = 0xAB610000;
                         break;
                 }
