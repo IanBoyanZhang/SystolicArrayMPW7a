@@ -1076,6 +1076,7 @@ module interface_top (
   // sync in control or PEs might be redundant
 
   always @(posedge clk) begin
+    // TODO: bubble up, as a single signal
     if (rst | sync) begin
       // Force combo circuits!!
       state           <= IDLE;
@@ -1090,6 +1091,12 @@ module interface_top (
       data_out 	      <= next_data_out;
     end
   end
+
+  // always @(sync) begin
+  //   if (sync) begin
+  //     next_state <= 0;
+  //   end
+  // end
 
   // Should we also use memory counter here?
   always @(*) begin
