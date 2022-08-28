@@ -209,7 +209,7 @@ void main()
 	    if (clk == 0) {
 	        reg_la1_data = mat_A[i_mat];
 		i_mat += 1;
-		mat_addr += 1;
+		mat_addr += 0x00000100;
 	    } 
 	}
 
@@ -223,7 +223,7 @@ void main()
 	    if (clk == 0) {
 	        reg_la1_data = mat_B[i_mat];
 		i_mat += 1;
-		mat_addr += 1;
+		mat_addr += 0x00000100;
 	    } 
 	}
 
