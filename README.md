@@ -12,3 +12,4 @@ FP16 and int8 modes are runtime configurable through the Caravel SoC core. The d
 
 Huge shoutout and appreciation to Steve @https://aurifexlabs.com/ for his invaluable assistance with Caravel. 
 
+Future modification or submission could be found [here](https://github.com/IanBoyanZhang/SystolicArray).
