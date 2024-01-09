@@ -8,8 +8,8 @@ It is the heart of Google's TPUs and major workhorses of DSP engines.
 
 In this project, we manually build a 3x3 matrix multiplier with Multiply-Accumulate Units that support two popular data formats used in modern machine learning or neural networks applications.
 
-FP16 and int8 modes are runtime configurable through the Caravel SoC core. The design is focusing on clean coding for ease of understanding and proper modulation for future extension.
+FP16 and INT8 modes are runtime configurable through the Caravel SoC core. The design is focusing on clean coding for ease of understanding, proper modulation for future extension and code generation.
 
-Huge shoutout and appreciation to Steve @https://aurifexlabs.com/ for his invaluable assistance with Caravel. 
+Huge shoutout to Steve @https://aurifexlabs.com/ for his invaluable assistance with Caravel. 
 
 Future modification or submission could be found [here](https://github.com/IanBoyanZhang/SystolicArray).
